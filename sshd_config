@@ -1,0 +1,8 @@
+# sshd_config
+
+Subsystem sftp internal-sftp
+Match group ftpaccess
+ChrootDirectory %h
+X11Forwarding no
+AllowTcpForwarding no
+ForceCommand internal-sftp
