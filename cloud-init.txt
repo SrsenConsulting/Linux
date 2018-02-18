@@ -127,3 +127,15 @@ power_state:
  message: Bye Bye Now
  timeout: 30
  condition: True
+
+##############
+ for i in {1..1}
+ do
+   sudo adduser --encrypt-home ftpuser$i --ingroup ftpaccess --shell /usr/sbin/nologin
+   sudo passwd ftpuser$i
+   sudo chown root /home/ftpuser$i
+   sudo mkdir /home/ftpuser$i/www
+
+   sudo chown ftpuser$i:ftpaccess /home/ftpuser$i/www
+   sudo chmod 711 /home/ftpuser$i
+ done
