@@ -5,8 +5,10 @@
 az login
 
 # Provide your own unique Key Vault name
-keyvault_name=SCkeyvault
+keyvault_name=srsenkeyvault
 resource_group=SrsenConsulting
+
+az group create --name $resource_group --location westus
 
 # Register the Key Vault provider
 az provider register -n Microsoft.KeyVault
@@ -20,12 +22,12 @@ az keyvault key create --vault-name $keyvault_name --name myKey --protection sof
 
 # Create an Azure Active Directory service principal for authenticating requests to Key Vault.
 # Read in the service principal ID and password for use in later commands.
-read sp_id sp_password <<< $(az ad sp create-for-rbac --query [appId,password] -o tsv)
+read sp_id sp_password <<< $(az ad sp create-for-rbac --query [appIdpassword] -o tsv)
 
 # Grant permissions on the Key Vault to the AAD service principal.
 az keyvault set-policy --name $keyvault_name --spn $sp_id \
-    --key-permissions all \
-    --secret-permissions all
+    --key-permissions backup create decrypt delete encrypt get import list purge recover restore sign unwrapKey update verify wrapKey \
+    --secret-permissions backup delete get list purge recover restore set
 
 # Create a virtual machine.
 az vm create \
@@ -34,6 +36,7 @@ az vm create \
     --image UbuntuLTS \
     --admin-username azureuser \
     --generate-ssh-keys \
+    --location westus \
     --custom-data cloud-init.txt
 
 # Encrypt the VM disks.
@@ -47,8 +50,8 @@ az vm encryption enable --resource-group $resource_group --name SFTPserver \
 # Output how to monitor the encryption status and next steps.
 echo "The encryption process can take some time. View status with:
 
-    az vm encryption show --resource-group myResourceGroup --name myVM --query [osDisk] -o tsv
+    az vm encryption show --resource-group $resource_group --name SFTPserver --query [osDisk] -o tsv
 
-When encryption status shows \`VMRestartPending\`, restart the VM with:
+When encryption status shows \`VMRestartPending\` restart the VM with:
 
     az vm restart --resource-group $resource_group --name SFTPserver"
