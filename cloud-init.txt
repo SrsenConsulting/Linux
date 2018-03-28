@@ -1,7 +1,7 @@
 #cloud-config
 groups:
   - Ubuntu:[root,sys]
-  - ftpaccess:[craig,ftpuser1,ftpuser2,ftpuser3]
+  - ftpaccess:[ftpuser1,ftpuser2,ftpuser3]
 package_upgrade: true
 packages:
   - openssh-server
@@ -9,16 +9,27 @@ users:
   - default
   - name: craig
     gecos: Craig Srsen
-    groups: sudo, ftpaccess
+    groups: sudo
     shell: /bin/bash
     sudo: ['ALL=(ALL) NOPASSWD:ALL']
     ssh-authorized-keys:
       - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC74Bm0zxXn6J3oI1i2hGVzUt0CBV823GR4FKp/Z8jVXxI/EYd6o+UD5nGWx4sAL/jcNlEQhhYx63T+h+q04sUpsgBx3gKGjw+Dm9tYNwXc9F/Oc4j4PsDtoT2BTIDjFzxVw4CPMwiLloij6QVSvyv+MSW84wA2eoAI3V7X3IsTqTSIIxLCoERdDAXS7cpbivHvueLL+qoJAX5+qWhJpQ0H56zW4vev8Gb6i2wDvEYh+vN2oYzXykkuLCKvca2nXqUSWE4UFqUFGRnjTtNMYkno5S4KP21Dgx2noN6acaE+Gb4tvOYw0GdwCPjnwp3lbsI0WozGJkVphqE+YCNbQEF+qxnd881Gc1Lls2xdy9KURfHo6kY0QcWysaGD+9k9H2VaMgh1TEOZmi/2xbrIFlvdne6LaAfqc+AERSfxQZ2gO5KZdNkB7Uk85CTO9giNkFbnzrjy4yd1SNGIgZ1lmGojDNB3+Q3gUoql/PIyn2FWd8Fv6oqLkW5zgXYsYv1/8wWixgxEoJCpQKTfys9+jiyO91v/wQaAQKrIt7VnXRtD4gGfleas/pLc98HBE1+5LbSPR6KOtspsL8bbOq/RExmI9V4XWG/Sno5mdw6gZIerQ9fW7n325N2//zXTPFqDIzJBWhaN57vNuyd8Da3V6XtoeTv6R3J0DwewkBVhbdxSow== csrsen@gmail.com
-- name: ftpuser1
-  gecos: FTP User 1
-  groups: ftpaccess
-  shell: /bin/bash
-  passwd:
+  - name: ftpuser1
+    gecos: FTP User 1
+    groups: ftpaccess
+    shell: /bin/bash
+    passwd:
+  - name: ftpuser2
+    gecos: FTP User 2
+    groups: ftpaccess
+    shell: /bin/bash
+    passwd:
+  - name: ftpuser3
+    gecos: FTP User 3
+    groups: ftpaccess
+    shell: /bin/bash
+    passwd:
+
 write_files:
 -   encoding: b64
     content: |
@@ -73,7 +84,7 @@ write_files:
     ChallengeResponseAuthentication no
 
     # Change to no to disable tunnelled clear text passwords
-    #PasswordAuthentication yes
+    PasswordAuthentication no
 
     # Kerberos options
     #KerberosAuthentication no
@@ -113,10 +124,13 @@ write_files:
 
     # Srsen Consulting mods
     Match group ftpaccess
-    ChrootDirectory %h
-    AllowTcpForwarding no
-    ForceCommand internal-sftp
-    path: /etc/ssh
+      ChrootDirectory %h
+      PasswordAuthentication yes
+      AllowTcpForwarding no
+      ForceCommand internal-sftp
+    Match All
+
+    path: /etc/ssh/sshd_config
     owner: root:root
     permissions: '0711'
 runcmd:
@@ -127,15 +141,3 @@ power_state:
  message: Bye Bye Now
  timeout: 30
  condition: True
-
-##############
- for i in {1..1}
- do
-   sudo adduser --encrypt-home ftpuser$i --ingroup ftpaccess --shell /usr/sbin/nologin
-   sudo passwd ftpuser$i
-   sudo chown root /home/ftpuser$i
-   sudo mkdir /home/ftpuser$i/www
-
-   sudo chown ftpuser$i:ftpaccess /home/ftpuser$i/www
-   sudo chmod 711 /home/ftpuser$i
- done
